@@ -2,7 +2,7 @@ const uuid = require('uuid/v4');
 
 const HttpError = require('../models/http-error');
 
-const TEMP_PLACES = [
+let TEMP_PLACES = [
     {
         id: 'p1',
         title: 'Empire State Building',
@@ -27,15 +27,15 @@ const getPlaceById = (req, res, next) => {
     res.json({ place });
 };
 
-const getPlaceByUserId = (req, res, next) => {
+const getPlacesByUserId = (req, res, next) => {
     const userId = req.params.uid;
-    const place = TEMP_PLACES.find(p => p.creator === userId);
+    const places = TEMP_PLACES.filter(p => p.creator === userId);
 
-    if (!place) {
-        return next(new HttpError('Could not find place with that user id', 404));
+    if (!places || places.length === 0) {
+        return next(new HttpError('Could not find places with that user id', 404));
     } // passes error to next middleware
 
-    res.json({ place });
+    res.json({ places });
 };
 
 const createPlace = (req, res, next) => {
@@ -53,6 +53,29 @@ const createPlace = (req, res, next) => {
     res.status(201).json({ place: createdPlace }); // Standard code sent when successfully created something new
 }
 
+const updatePlace = (req, res, next) => {
+    const { title, description } = req.body;
+    const placeId = req.params.pid;
+
+    // *** use the spread operator to create a copy of the object to be updated ***
+    const updatedPlace = { ...TEMP_PLACES.find(p => p.id === placeId) };
+    const placeIndex = TEMP_PLACES.findIndex(p => p.id === placeId);
+    updatedPlace.title = title;
+    updatedPlace.description = description;
+
+    TEMP_PLACES[placeIndex] = updatedPlace;
+
+    res.status(200).json({ place: updatedPlace });
+};
+
+const deletePlace = (req, res, next) => {
+    const placeId = req.params.pid;
+    TEMP_PLACES = TEMP_PLACES.filter(p => p.id !== placeId);
+    res.status(200).json({ message: 'Deleted place' });
+};
+
 exports.getPlaceById = getPlaceById;
-exports.getPlaceByUserId = getPlaceByUserId;
+exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;
+exports.updatePlace = updatePlace;
+exports.deletePlace = deletePlace;
