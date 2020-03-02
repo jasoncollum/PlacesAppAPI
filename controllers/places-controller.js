@@ -36,5 +36,20 @@ const getPlaceByUserId = (req, res, next) => {
     res.json({ place });
 };
 
+const createPlace = (req, res, next) => {
+    const { title, description, coordinates, address, creator } = req.body;
+    const createdPlace = {
+        title,
+        description,
+        location: coordinates,
+        address,
+        creator
+    };
+    TEMP_PLACES.push(createdPlace);
+
+    res.status(201).json({ place: createdPlace }); // Standard code sent when successfully created something new
+}
+
 exports.getPlaceById = getPlaceById;
 exports.getPlaceByUserId = getPlaceByUserId;
+exports.createPlace = createPlace;
