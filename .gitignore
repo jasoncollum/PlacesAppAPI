@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+
+# Logs
+*.log
+
+# dotenv environment variables file
+.env
+.env.test
+
+node_modules
