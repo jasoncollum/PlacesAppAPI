@@ -1,3 +1,5 @@
+const uuid = require('uuid/v4');
+
 const HttpError = require('../models/http-error');
 
 const TEMP_PLACES = [
@@ -39,6 +41,7 @@ const getPlaceByUserId = (req, res, next) => {
 const createPlace = (req, res, next) => {
     const { title, description, coordinates, address, creator } = req.body;
     const createdPlace = {
+        id: uuid(),
         title,
         description,
         location: coordinates,
