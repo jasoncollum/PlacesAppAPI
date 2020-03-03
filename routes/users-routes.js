@@ -1,21 +1,14 @@
 const express = require('express');
 
+const usersController = require('../controllers/users-controller');
+
 const router = express.Router();
 
-const TEMP_USERS = [
-    {
-        id: 'u1',
-        name: 'Jason Collum',
-        image: 'https://wws.jasoncollum.com/img/jason.png',
-        places: 1
-    }
-];
+router.get('/', usersController.getUsers);
 
-router.get('/:uid', (req, res, next) => {
-    const userId = req.params.uid;
-    const user = TEMP_USERS.find(u => u.id === userId);
-    res.json({ user });
-});
+router.post('/signup', usersController.signup);
+
+router.post('/login', usersController.login);
 
 
 module.exports = router;
