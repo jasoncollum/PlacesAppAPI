@@ -1,5 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+require('dotenv').config({ path: 'variables.env' });
 
 const placesRoutes = require('./routes/places-routes');
 const usersRoutes = require('./routes/users-routes');
@@ -26,6 +28,9 @@ app.use((error, req, res, next) => {
     res.json({ message: error.message || 'An unknown error occurred' });
 });
 
+// Connect to server
+mongoose
+    .connect(process.env.DATABASE)
+    .then(() => app.listen(5000))
+    .catch(err => console.log(err));
 
-// Listen on port 5000
-app.listen(5000);
