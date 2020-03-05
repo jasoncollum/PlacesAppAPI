@@ -19,26 +19,42 @@ let TEMP_PLACES = [
     }
 ];
 
-const getPlaceById = (req, res, next) => {
+const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid;
-    const place = TEMP_PLACES.find(p => p.id === placeId);
+
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong - Could not find place', 500)
+        );
+    }
 
     if (!place) {
         return next(new HttpError('Could not find place with that id', 404));
-    } // passes error to next middleware
+    }
 
-    res.json({ place });
+    res.json({ place: place.toObject({ getters: true }) }); // getter adds id property to current object
 };
 
-const getPlacesByUserId = (req, res, next) => {
+const getPlacesByUserId = async (req, res, next) => {
     const userId = req.params.uid;
-    const places = TEMP_PLACES.filter(p => p.creator === userId);
+
+    let places;
+    try {
+        places = await Place.find({ creator: userId });
+    } catch (error) {
+        return next(
+            new HttpError('Fetching places failed', 500)
+        );
+    }
 
     if (!places || places.length === 0) {
         return next(new HttpError('Could not find places with that user id', 404));
-    } // passes error to next middleware
+    }
 
-    res.json({ places });
+    res.json({ places: places.map(place => place.toObject({ getters: true })) });
 };
 
 const createPlace = async (req, res, next) => {
