@@ -3,6 +3,7 @@ const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const getCoordinatesForAddress = require('../util/location');
+const Place = require('../models/place');
 
 let TEMP_PLACES = [
     {
@@ -58,15 +59,22 @@ const createPlace = async (req, res, next) => {
     }
 
 
-    const createdPlace = {
-        id: uuid(),
+    const createdPlace = new Place({
         title,
         description,
-        location: coordinates,
         address,
+        location: coordinates,
+        image: 'http://upload.wikimedia.org/wikipedia/commons/d/df/NYC_Empire_State_Building.jpg',
         creator
-    };
-    TEMP_PLACES.push(createdPlace);
+    });
+
+    try {
+        await createdPlace.save();
+    } catch (error) {
+        return next(
+            new HttpError('Creating place failed', 500)
+        );
+    }
 
     res.status(201).json({ place: createdPlace }); // Standard code sent when successfully created something new
 }
