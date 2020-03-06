@@ -8,7 +8,7 @@ const userSchema = new Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, minLength: 7 },
     image: { type: String, required: true },
-    places: { type: String, required: true }
+    places: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Place' }]
 });
 
 userSchema.plugin(uniqueValidator);  // checks new email address is not already in use

@@ -25,7 +25,7 @@ const signup = async (req, res, next) => {
         );
     }
 
-    const { name, email, password, places } = req.body;
+    const { name, email, password } = req.body;
 
     let existing;
     try {
@@ -45,7 +45,7 @@ const signup = async (req, res, next) => {
         email,
         image: 'http://curbcollege.org/wp-content/uploads/2012/09/Sorted-Noise-Jason.jpeg',
         password,
-        places
+        places: []
     });
 
     try {
