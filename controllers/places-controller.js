@@ -5,20 +5,6 @@ const HttpError = require('../models/http-error');
 const getCoordinatesForAddress = require('../util/location');
 const Place = require('../models/place');
 
-let TEMP_PLACES = [
-    {
-        id: 'p1',
-        title: 'Empire State Building',
-        description: 'One of the most famos skyscrapers in the world',
-        location: {
-            lat: 40.7484474,
-            lng: -73.9871516
-        },
-        address: '20 W 34th St, New York, NY 10001',
-        creator: 'u1'
-    }
-];
-
 const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid;
 
@@ -35,7 +21,7 @@ const getPlaceById = async (req, res, next) => {
         return next(new HttpError('Could not find place with that id', 404));
     }
 
-    res.json({ place: place.toObject({ getters: true }) }); // getter adds id property to current object
+    res.json({ place: place.toObject({ getters: true }) });
 };
 
 const getPlacesByUserId = async (req, res, next) => {
@@ -92,7 +78,7 @@ const createPlace = async (req, res, next) => {
         );
     }
 
-    res.status(201).json({ place: createdPlace }); // Standard code sent when successfully created something new
+    res.status(201).json({ place: createdPlace });
 }
 
 const updatePlace = async (req, res, next) => {
@@ -104,7 +90,6 @@ const updatePlace = async (req, res, next) => {
     const { title, description } = req.body;
     const placeId = req.params.pid;
 
-    // *** use the spread operator to create a copy of the object to be updated ***
     let place;
     try {
         place = await Place.findById(placeId);
@@ -128,13 +113,26 @@ const updatePlace = async (req, res, next) => {
     res.status(200).json({ place: place.toObject({ getters: true }) });
 };
 
-const deletePlace = (req, res, next) => {
+const deletePlace = async (req, res, next) => {
     const placeId = req.params.pid;
-    if (!TEMP_PLACES.find(p => p.id === placeId)) {
-        throw new HttpError('Could not find place with that id', 404);
+
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong - Could not delete place', 500)
+        );
     }
 
-    TEMP_PLACES = TEMP_PLACES.filter(p => p.id !== placeId);
+    try {
+        await place.remove();
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong - Could not delete place', 500)
+        );
+    }
+
     res.status(200).json({ message: 'Deleted place' });
 };
 
