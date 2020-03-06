@@ -95,7 +95,7 @@ const createPlace = async (req, res, next) => {
     res.status(201).json({ place: createdPlace }); // Standard code sent when successfully created something new
 }
 
-const updatePlace = (req, res, next) => {
+const updatePlace = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         throw new HttpError('Invalid input, please check your data', 422);
@@ -105,14 +105,27 @@ const updatePlace = (req, res, next) => {
     const placeId = req.params.pid;
 
     // *** use the spread operator to create a copy of the object to be updated ***
-    const updatedPlace = { ...TEMP_PLACES.find(p => p.id === placeId) };
-    const placeIndex = TEMP_PLACES.findIndex(p => p.id === placeId);
-    updatedPlace.title = title;
-    updatedPlace.description = description;
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong - Could not find place', 500)
+        );
+    }
 
-    TEMP_PLACES[placeIndex] = updatedPlace;
+    place.title = title;
+    place.description = description;
 
-    res.status(200).json({ place: updatedPlace });
+    try {
+        await place.save();
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong - Could not update place', 500)
+        );
+    }
+
+    res.status(200).json({ place: place.toObject({ getters: true }) });
 };
 
 const deletePlace = (req, res, next) => {
