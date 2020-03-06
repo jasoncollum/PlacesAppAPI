@@ -1,50 +1,79 @@
-const uuid = require('uuid/v4');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
+const User = require('../models/user');
 
-const TEMP_USERS = [
-    {
-        id: 'u1',
-        name: 'Jason Collum',
-        email: 'test@test.com',
-        password: 'password'
+const getUsers = async (req, res, next) => {
+    let users;
+    try {
+        users = await User.find({}, '-password');
+    } catch (error) {
+        return next(
+            new HttpError('Fetching users failed', 500)
+        )
     }
-];
 
-const getUsers = (req, res, next) => {
-    res.json({ users: TEMP_USERS });
+    res.json({ users: users.map(user => user.toObject({ getters: true })) });
 };
 
-const signup = (req, res, next) => {
+const signup = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        throw new HttpError('Invalid input, please check your data', 422);
+        return next(
+            new HttpError('Invalid input, please check your data', 422)
+        );
     }
 
     const { name, email, password } = req.body;
-    const emailTaken = TEMP_USERS.find(u => u.email === email);
 
-    if (emailTaken) {
-        return next(new HttpError('This email is already being used', 422));
+    let existing;
+    try {
+        existingUser = await User.findOne({ email: email });
+    } catch (error) {
+        return next(
+            new HttpError('Sign up failed', 500)
+        );
     }
 
-    createdUser = {
-        id: uuid(),
+    if (existing) {
+        return next(new HttpError('Email already in use - Please login', 422));
+    }
+
+    createdUser = new User({
         name,
         email,
-        password
-    };
+        image: 'http://curbcollege.org/wp-content/uploads/2012/09/Sorted-Noise-Jason.jpeg',
+        password,
+        places: []
+    });
 
-    TEMP_USERS.push(createdUser);
-    res.status(201).json({ user: createdUser });
+    try {
+        await createdUser.save();
+    } catch (error) {
+        return next(
+            new HttpError('Sign up failed', 500)
+        );
+    }
+
+    res.status(201).json({ user: createdUser.toObject({ getters: true }) });
 };
 
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
     const { email, password } = req.body;
-    const identifiedUser = TEMP_USERS.find(u => u.email === email);
+
+    let identifiedUser;
+    try {
+        identifiedUser = await User.findOne({ email: email });
+    } catch (error) {
+        return next(
+            new HttpError('Something went wrong', 500)
+        );
+    }
+
     if (!identifiedUser || identifiedUser.password !== password) {
-        return next(new HttpError('Could not identify user, tincorrect credentials', 401));
+        return next(
+            new HttpError('Could not identify user, incorrect credentials', 401)
+        );
     }
 
     res.json({ message: 'Logged in!' });
