@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 
 const HttpError = require('../models/http-error');
 const getCoordinatesForAddress = require('../util/location');
@@ -87,7 +88,12 @@ const createPlace = async (req, res, next) => {
     }
 
     try {
-        await createdPlace.save();
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await createdPlace.save({ session: sess });
+        user.places.push(createdPlace);
+        await user.save({ session: sess });
+        await sess.commitTransaction(); // this is when all changes are saved to db
     } catch (error) {
         return next(
             new HttpError('Creating place failed', 500)
