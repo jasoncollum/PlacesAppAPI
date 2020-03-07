@@ -39,7 +39,7 @@ app.use((error, req, res, next) => {
 
 // Connect to server
 mongoose
-    .connect(process.env.DATABASE)
+    .connect(process.env.DATABASE, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => app.listen(5000))
     .catch(err => console.log(err));
 
