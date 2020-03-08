@@ -44,10 +44,10 @@ const signup = async (req, res, next) => {
     try {
         hashedPassword = await bcrypt.hash(password, 12);
     } catch (err) {
-        const error = new HttpError('Could not create user.  Please try again', 500);
-        return next(error);
+        return next(
+            new HttpError('Could not create user, Please try again', 500)
+        );
     }
-
 
     createdUser = new User({
         name,
@@ -80,9 +80,24 @@ const login = async (req, res, next) => {
         );
     }
 
-    if (!identifiedUser || identifiedUser.password !== password) {
+    if (!identifiedUser) {
         return next(
             new HttpError('Could not identify user, incorrect credentials', 401)
+        );
+    }
+
+    let isValidPassword = false;
+    try {
+        isValidPassword = await bcrypt.compare(password, identifiedUser.password);
+    } catch (error) {
+        return next(
+            new HttpError('Could not log you in, please check your credentials and try again', 500)
+        );
+    }
+
+    if (!isValidPassword) {
+        return next(
+            new HttpError('Invalid credentials, could not log you in', 401)
         );
     }
 
