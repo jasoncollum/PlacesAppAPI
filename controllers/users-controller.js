@@ -121,7 +121,26 @@ const login = async (req, res, next) => {
         );
     }
 
-    res.json({ message: 'Logged in!', user: identifiedUser.toObject({ getters: true }) });
+    let token;
+    try {
+        token = jwt.sign({
+            userId: identifiedUser.id,
+            email: identifiedUser.email
+        },
+            'supersecret',
+            { expiresIn: '1h' }
+        );
+    } catch (error) {
+        return next(
+            new HttpError('Logging in failed', 500)
+        );
+    }
+
+    res.json({
+        userId: identifiedUser.id,
+        email: identifiedUser.email,
+        token
+    });
 };
 
 exports.getUsers = getUsers;
