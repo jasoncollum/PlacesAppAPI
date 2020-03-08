@@ -42,7 +42,7 @@ const signup = async (req, res, next) => {
     createdUser = new User({
         name,
         email,
-        image: 'http://curbcollege.org/wp-content/uploads/2012/09/Sorted-Noise-Jason.jpeg',
+        image: req.file.path,
         password,
         places: []
     });
